@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright 2011- The GROMACS Authors
+ * Copyright 2022- The GROMACS Authors
  * and the project initiators Erik Lindahl, Berk Hess and David van der Spoel.
  * Consult the AUTHORS/COPYING files and https://www.gromacs.org for details.
  *
@@ -31,41 +31,43 @@
  * To help us fund GROMACS development, we humbly ask that you cite
  * the research papers on the package. Check out https://www.gromacs.org.
  */
-/*! \internal \file
- * \brief
- * Implements assertion handlers.
+/*! \libinternal \file
+ *  \brief Helper functions for a GpuEventSynchronizer class.
  *
- * \author Teemu Murtola <teemu.murtola@gmail.com>
- * \ingroup module_utility
+ *  \author Andrey Alekseenko <al42and@gmail.com>
+ * \inlibraryapi
  */
+
 #include "gmxpre.h"
+
+#include "gpueventsynchronizer_helpers.h"
+
+#include "config.h"
 
 #include "gromacs/utility/gmxassert.h"
 
-#include <cstdio>
-#include <cstdlib>
+#if GMX_GPU_CUDA
+// Enable event consumption tracking in debug builds, see #3988.
+// In OpenCL and SYCL builds, g_useEventConsumptionCounting is constexpr true.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+extern bool g_useEventConsumptionCounting;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+bool g_useEventConsumptionCounting = (CMAKE_BUILD_TYPE == CMAKE_BUILD_TYPE_DEBUG
+                                      || CMAKE_BUILD_TYPE == CMAKE_BUILD_TYPE_RELWITHDEBINFO);
+#endif
 
-#include "gromacs/utility/fatalerror.h"
-
-#include "errorformat.h"
-
-namespace gmx
+namespace gmx::internal
 {
-
-/*! \cond internal */
-namespace internal
+void disableCudaEventConsumptionCounting()
 {
-
-void assertHandler(const char* condition, const char* msg, const char* func, const std::filesystem::path& file, int line)
-{
-    printFatalErrorHeader(stderr, "Assertion failed", func, file, line);
-    std::fprintf(stderr, "Condition: %s\n", condition);
-    printFatalErrorMessageLine(stderr, msg, 0);
-    printFatalErrorFooter(stderr);
-    gmx_exit_on_fatal_error(ExitType_Abort, 1);
+    GMX_RELEASE_ASSERT(GMX_GPU_CUDA != 0, "Can only be called in CUDA builds");
+#if GMX_GPU_CUDA
+    /* With threadMPI, we can have a race between different threads setting and reading this flag.
+     * However, either all ranks call this function or no one does,
+     * so the expected value is the same for all threads,
+     * and each thread reads the flag only after callin this function (or deciding no to),
+     * so we cannot have any inconsistencies. */
+    g_useEventConsumptionCounting = false;
+#endif
 }
-
-} // namespace internal
-//! \endcond
-
-} // namespace gmx
+} // namespace gmx::internal

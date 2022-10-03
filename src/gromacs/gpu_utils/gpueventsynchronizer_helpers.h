@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright 2011- The GROMACS Authors
+ * Copyright 2021- The GROMACS Authors
  * and the project initiators Erik Lindahl, Berk Hess and David van der Spoel.
  * Consult the AUTHORS/COPYING files and https://www.gromacs.org for details.
  *
@@ -31,41 +31,21 @@
  * To help us fund GROMACS development, we humbly ask that you cite
  * the research papers on the package. Check out https://www.gromacs.org.
  */
-/*! \internal \file
- * \brief
- * Implements assertion handlers.
+/*! \libinternal \file
+ *  \brief Helper functions for a GpuEventSynchronizer class.
  *
- * \author Teemu Murtola <teemu.murtola@gmail.com>
- * \ingroup module_utility
+ *  \author Andrey Alekseenko <al42and@gmail.com>
+ * \inlibraryapi
  */
-#include "gmxpre.h"
+#ifndef GMX_GPU_UTILS_GPUEVENTSYNCHRONIZER_HELPERS_H
+#define GMX_GPU_UTILS_GPUEVENTSYNCHRONIZER_HELPERS_H
 
-#include "gromacs/utility/gmxassert.h"
+#include "config.h"
 
-#include <cstdio>
-#include <cstdlib>
-
-#include "gromacs/utility/fatalerror.h"
-
-#include "errorformat.h"
-
-namespace gmx
+namespace gmx::internal
 {
+//! Setter for \c g_useEventConsumptionCounting.
+void disableCudaEventConsumptionCounting();
+} // namespace gmx::internal
 
-/*! \cond internal */
-namespace internal
-{
-
-void assertHandler(const char* condition, const char* msg, const char* func, const std::filesystem::path& file, int line)
-{
-    printFatalErrorHeader(stderr, "Assertion failed", func, file, line);
-    std::fprintf(stderr, "Condition: %s\n", condition);
-    printFatalErrorMessageLine(stderr, msg, 0);
-    printFatalErrorFooter(stderr);
-    gmx_exit_on_fatal_error(ExitType_Abort, 1);
-}
-
-} // namespace internal
-//! \endcond
-
-} // namespace gmx
+#endif
