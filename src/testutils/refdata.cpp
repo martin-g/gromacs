@@ -296,11 +296,11 @@ TestReferenceDataImpl::TestReferenceDataImpl(ReferenceDataMode                  
                                              std::optional<std::filesystem::path> testNameOverride) :
     updateMismatchingEntries_(false), bSelfTestMode_(bSelfTestMode), bInUse_(false)
 {
-    const std::string dirname  = bSelfTestMode ? TestFileManager::getGlobalOutputTempDirectory()
-                                               : TestFileManager::getInputDataDirectory();
+    const std::string dirname  = bSelfTestMode ? TestFileManager::getGlobalOutputTempDirectory().string()
+                                               : TestFileManager::getInputDataDirectory().string();
     const std::string filename = testNameOverride.has_value()
                                          ? testNameOverride.value()
-                                         : TestFileManager::getTestSpecificFileName(".xml");
+                                         : TestFileManager::getTestSpecificFileName(".xml").string();
     fullFilename_              = std::filesystem::path(dirname).append("refdata").append(filename);
 
     switch (mode)

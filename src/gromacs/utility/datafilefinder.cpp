@@ -196,7 +196,7 @@ std::filesystem::path DataFileFinder::findFile(const DataFileOptions& options) c
         if (!defaultPath.empty())
         {
             message.append("\n  ");
-            message.append(defaultPath);
+            message.append(defaultPath.string());
             message.append(" (default)");
         }
         if (!bEnvIsSet && envName != nullptr)
@@ -220,7 +220,7 @@ std::vector<DataFileInfo> DataFileFinder::enumerateFiles(const DataFileOptions& 
     if (options.bCurrentDir_)
     {
         auto files = DirectoryEnumerator::enumerateFilesWithExtension(
-                std::filesystem::current_path(), options.filename_, false);
+                std::filesystem::current_path(), options.filename_.string(), false);
         for (const auto& file : files)
         {
             result.emplace_back(".", file, false);
@@ -230,7 +230,7 @@ std::vector<DataFileInfo> DataFileFinder::enumerateFiles(const DataFileOptions& 
     {
         for (const auto& path : impl_->searchPath_)
         {
-            auto files = DirectoryEnumerator::enumerateFilesWithExtension(path, options.filename_, false);
+            auto files = DirectoryEnumerator::enumerateFilesWithExtension(path, options.filename_.string(), false);
             for (const auto& file : files)
             {
                 result.emplace_back(path, file, false);
@@ -240,7 +240,7 @@ std::vector<DataFileInfo> DataFileFinder::enumerateFiles(const DataFileOptions& 
     const auto& defaultPath = Impl::getDefaultPath();
     if (!defaultPath.empty())
     {
-        auto files = DirectoryEnumerator::enumerateFilesWithExtension(defaultPath, options.filename_, false);
+        auto files = DirectoryEnumerator::enumerateFilesWithExtension(defaultPath, options.filename_.string(), false);
         for (const auto& file : files)
         {
             result.emplace_back(defaultPath, file, true);
